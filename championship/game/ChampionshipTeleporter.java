@@ -49,12 +49,11 @@ public class ChampionshipTeleporter {
         return mPlayerLocationMap;
     }
 
-    public void clearPlayerLocationMap() {
+    private void clearPlayerLocationMap() {
         mPlayerLocationMap.clear();
     }
 
     private void sendMessageAndTeleport(List<L2PcInstance> players, int[] location, int xLocation) {
-        restoreFullStatus(players);
         players.forEach(l2PcInstance -> {
             l2PcInstance.sendMessage(YOU_WILL_BE_TELEPORTED);
             l2PcInstance.teleToLocation(location[0] + xLocation, location[1], location[2], true);
@@ -70,12 +69,4 @@ public class ChampionshipTeleporter {
         }
     }
 
-    private void restoreFullStatus(List<L2PcInstance> players) {
-        players.forEach(it -> {
-            it.setCurrentCp(it.getMaxCp());
-            it.setCurrentHpMp(it.getMaxHp(), it.getMaxMp());
-            if (it.getKarma() > 0)
-                it.setKarma(0);
-        });
-    }
 }

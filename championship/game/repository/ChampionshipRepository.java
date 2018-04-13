@@ -1,5 +1,6 @@
 package com.it.br.gameserver.model.entity.event.championship.game.repository;
 
+import com.it.br.L2DatabaseFactory;
 import com.it.br.gameserver.model.L2World;
 import com.it.br.gameserver.model.actor.instance.L2PcInstance;
 import com.it.br.gameserver.model.entity.event.championship.model.ChampionshipGame;
@@ -47,12 +48,9 @@ public class ChampionshipRepository {
     private static final Logger LOGGER = Logger.getLogger(ChampionshipRepository.class.getName());
 
 
-    public static PreparedStatement preparedStatement(String statement) {
-        Connection connection;
-        String URL = "jdbc:mysql://localhost:3306/L2teste";
+    private static PreparedStatement preparedStatement(String statement) {
         try {
-//            connection = L2DatabaseFactory.getInstance().getConnection();
-            return DriverManager.getConnection(URL, "root", "root").prepareStatement(statement);
+            return L2DatabaseFactory.getInstance().getConnection().prepareStatement(statement);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -63,7 +61,6 @@ public class ChampionshipRepository {
         PreparedStatement statement = preparedStatement(TRUNCATE_TEAM);
         try {
             statement.execute();
-            statement.close();
         } catch (SQLException e) {
             LOGGER.warning("Error at truncate table");
             e.printStackTrace();
@@ -124,7 +121,7 @@ public class ChampionshipRepository {
         return 0;
     }
 
-    public synchronized static void insertChampionshipGame(ChampionshipTeam teamA, ChampionshipTeam teamB, int totalKillsInEventTeamA, int totalDeathsInEventTeamA, Date date) {
+    public synchronized static void insertChampionshipGame(ChampionshipTeam teamA, ChampionshipTeam teamB, int totalKillsInEventTeamA, int totalDeathsInEventTeamA, Timestamp timestamp) {
         ChampionshipGame game = new ChampionshipGame();
         game.setKill(totalKillsInEventTeamA);
         game.setDeath(totalDeathsInEventTeamA);
@@ -146,7 +143,7 @@ public class ChampionshipRepository {
 
         int idGameTwo = insertIntoChampionshipGameAndReturnLastInsertId(game);
 
-        insertIntoGameVersusAndAuditHistory(idGameOne, idGameTwo, date);
+        insertIntoGameVersusAndAuditHistory(idGameOne, idGameTwo, timestamp);
     }
 
     public static List<Integer> getLosersTeamById() {
@@ -157,7 +154,6 @@ public class ChampionshipRepository {
             while (resultSet.next()) {
                 integers.add(resultSet.getInt(1));
             }
-            preparedStatement.close();
             return integers;
         } catch (SQLException e) {
             LOGGER.info("Error to losers team by id");
@@ -209,8 +205,7 @@ public class ChampionshipRepository {
             statement.setInt(1, player.getObjectId());
             statement.setString(2, teamName);
             statement.execute();
-            statement.close();
-
+            player.sendMessage(REGISTERED);
         } catch (SQLException e) {
             LOGGER.warning("Error at register");
             e.printStackTrace();
@@ -224,13 +219,16 @@ public class ChampionshipRepository {
         return true;
     }
 
-    public static boolean unregister(L2PcInstance player) {
+    public static void unregister(L2PcInstance player) {
         PreparedStatement statement = preparedStatement(DELETE_FROM_TEAM_WHERE_ID_TEAM_LEADER);
         try {
             statement.setInt(1, player.getObjectId());
-            return statement.executeUpdate() == 1;
+            if (statement.executeUpdate() == 1)
+                player.sendMessage(UNREGISTERED);
+            else
+                player.sendMessage(NOT_REGISTERED);
         } catch (SQLException e) {
-            player.sendMessage(NOT_REGISTERED);
+            LOGGER.warning("Error at unregister");
             e.printStackTrace();
         } finally {
             try {
@@ -238,9 +236,7 @@ public class ChampionshipRepository {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
         }
-        return false;
     }
 
     private static boolean findTeamName(String teamName) {
@@ -274,7 +270,6 @@ public class ChampionshipRepository {
                 String teamName = resultSet.getString(2);
                 modelTableViews.add(new ModelTableView(charName, teamName));
             }
-            preparedStatement.close();
         } catch (SQLException e) {
             LOGGER.warning("Error at team with pagination");
             e.printStackTrace();
@@ -318,7 +313,6 @@ public class ChampionshipRepository {
                 String teamName = resultSet.getString(FIELD_NAME_TEAM[2]);
                 championshipTeams.add(new ChampionshipTeam(teamId, leaderPlayer.getParty().getPartyMembers(), teamName));
             }
-            statement.close();
         } catch (SQLException e) {
             LOGGER.warning("Error at insert get champions");
             e.printStackTrace();
@@ -333,7 +327,7 @@ public class ChampionshipRepository {
         return championshipTeams;
     }
 
-    private static void insertIntoGameVersusAndAuditHistory(int idGameOne, int idGameTwo, Date date) {
+    private static void insertIntoGameVersusAndAuditHistory(int idGameOne, int idGameTwo, Timestamp timestamp) {
         PreparedStatement statement = preparedStatement(INSERT_INTO_GAME_VERSUS);
         try {
             statement.setInt(1, idGameOne);
@@ -343,20 +337,19 @@ public class ChampionshipRepository {
             resultSet.next();
             int idGameVersus = resultSet.getInt(1);
             statement.close();
-            auditHistory(idGameVersus, date);
+            auditHistory(idGameVersus, timestamp);
         } catch (SQLException e) {
             LOGGER.warning("Error at insert game versus");
             e.printStackTrace();
         }
     }
 
-    private static void auditHistory(int idGameVersus, Date date) {
+    private static void auditHistory(int idGameVersus, Timestamp timestamp) {
         PreparedStatement statement = preparedStatement(INSERT_INTO_HISTORY);
         try {
             statement.setInt(1, idGameVersus);
-            statement.setDate(2, date);
+            statement.setTimestamp(2, timestamp);
             statement.execute();
-            statement.close();
         } catch (SQLException e) {
             LOGGER.warning("Error at audit history");
             e.printStackTrace();
@@ -401,7 +394,6 @@ public class ChampionshipRepository {
             statement.setInt(1, idChampionshipTeam);
             statement.setDate(2, new Date(Calendar.getInstance(TIME_ZONE).getTimeInMillis()));
             statement.execute();
-            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {

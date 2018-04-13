@@ -9,11 +9,13 @@ import com.it.br.gameserver.model.entity.event.championship.util.ChampionshipCon
 import com.it.br.gameserver.model.entity.event.championship.util.Util;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import static com.it.br.gameserver.model.entity.event.championship.model.ChampionshipTeam.TeamState.WAITING_FIGHT;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TIME_ZONE;
 
 
 public class ChampionshipGameTask implements Runnable {
@@ -36,7 +38,9 @@ public class ChampionshipGameTask implements Runnable {
 
         ChampionshipTeleporter teleporter = ChampionshipTeleporter.LAZY_HOLDER.getInstance();
         teleporter.init(mTeamA, mTeamB);
-        Date date = new Date(Calendar.getInstance().getTimeInMillis());
+
+        Timestamp timestamp = new Timestamp(Calendar.getInstance(TIME_ZONE).getTimeInMillis());
+
         List<L2PcInstance> playersToBattle = new ArrayList<>();
         playersToBattle.addAll(mTeamA.getPlayersList());
         playersToBattle.addAll(mTeamB.getPlayersList());
@@ -59,7 +63,8 @@ public class ChampionshipGameTask implements Runnable {
 
                 int totalKillsInEventTeamA = mTeamA.getTotalPvpKills() - totalOldTotalPvpKillTeamA;
                 int totalDeathsInEventTeamA = mTeamB.getTotalPvpKills() - totalOldTotalPvpKillTeamB;
-                ChampionshipRepository.insertChampionshipGame(mTeamA, mTeamB, totalKillsInEventTeamA, totalDeathsInEventTeamA, date);
+                ChampionshipRepository.insertChampionshipGame(mTeamA, mTeamB, totalKillsInEventTeamA, totalDeathsInEventTeamA, timestamp);
+
                 Util.setEffectsToParticipate(playersToBattle, false, false);
                 teleporter.teleportPlayerToLastPosition();
                 STADIUM.setStadiaFree();

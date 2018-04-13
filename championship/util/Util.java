@@ -64,7 +64,7 @@ public class Util {
         }
     }
 
-    public static void setEffectsToParticipate(List<L2PcInstance> players, boolean paralyzed) {
+    private static void setEffectsToParticipate(List<L2PcInstance> players, boolean paralyzed) {
         setEffectsToParticipate(players, paralyzed, true);
     }
 
@@ -73,16 +73,27 @@ public class Util {
             it.setFightingInChampionship(isFightingInChampionship);
             it.sendPacket(new StopMove(it));
             it.setIsParalyzed(paralyzed);
+            it.setCurrentCp(it.getMaxCp());
+            it.setCurrentHpMp(it.getMaxHp(), it.getMaxMp());
+
             if (it.isStunned())
                 it.setIsStunned(false);
+
             if (it.isImobilised())
                 it.setIsImobilised(false);
-            if (it.isMounted()) {
+
+            if (it.isMounted())
                 it.dismount();
-            }
-            if (it.isInDuel()) {
+
+            if (it.isInDuel())
                 it.setDuelState(Duel.DUELSTATE_INTERRUPTED);
-            }
+
+            if(it.getPvpFlag() > 0)
+                it.setPvpFlag(0);
+
+            if (it.getKarma() > 0)
+                it.setKarma(0);
+
         });
     }
 }

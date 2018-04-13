@@ -9,6 +9,8 @@ import com.it.br.gameserver.network.serverpackets.NpcHtmlMessage;
 
 import java.util.Calendar;
 
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TIME_ZONE;
+
 public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
 
     private static final String[] COMMAND_LIST = {"register", "unregister", "info"};
@@ -21,7 +23,7 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
             championshipEvent.setHtml(getHtmForce(path));
             activeChar.sendPacket(championshipEvent);
         } else if (command.startsWith("register")) {
-            if (ChampionshipConstants.DAY_OF_WEEK == Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
+            if (ChampionshipConstants.DAY_OF_WEEK == Calendar.getInstance(TIME_ZONE).get(Calendar.DAY_OF_WEEK)) {
                 activeChar.sendMessage(ChampionshipConstants.NOT_ALLOWED_REGISTER_IN_DAY_OF_EVENT);
             } else {
                 String teamName = command.substring(9);

@@ -37,7 +37,7 @@ public class ChampionshipEvent implements Runnable {
     private Random mRandom = new Random();
     private List<ChampionshipTeam> mTeamsRegistered;
     private List<ChampionshipTeam> mAuxList;
-    private List<Integer> losersTeamById = new ArrayList<>(Arrays.asList(1, 2, 3, 4));//getLosersTeamById();
+    private List<Integer> losersTeamById;
 
     private ChampionshipEvent() {
         ChampionshipEventSchedule.LAZY_HOLDER.schedule();
@@ -64,7 +64,6 @@ public class ChampionshipEvent implements Runnable {
     private void startFinalPhase() {
         startGames();
         ChampionshipTeam championshipTeam = TEAMS_TO_BATTLE.get(0);
-        System.out.println("CHAMPIONS IS " + championshipTeam.getId());
         ChampionshipRepository.insertChampion(championshipTeam.getId());
         rewardTeam(championshipTeam);
     }
@@ -134,13 +133,12 @@ public class ChampionshipEvent implements Runnable {
     private void startLoserSeries() {
         STATE = ChampionshipState.LOSER_SERIES;
         clearInfoTeams();
-        //TODO por enquanto não tem parada em teste
-        if (losersTeamById.size() == 1) {
+        losersTeamById = ChampionshipRepository.getLosersTeamById();
+        if (losersTeamById != null && losersTeamById.size() == 1) {
             LOGGER.info("******Initializing FINAL PHASE******");
             TEAMS_TO_BATTLE.removeIf(it -> it.getId() == losersTeamById.get(0));
             STATE = ChampionshipState.FINAL_PHASE;
             startFinalPhase();
-
         } else {
             LOGGER.info("******Initializing LOSER SERIES******");
             List<ChampionshipTeam> teamsWaitingLoserSeriesEnd = TEAMS_TO_BATTLE.stream().map(it -> {
@@ -151,11 +149,9 @@ public class ChampionshipEvent implements Runnable {
             TEAMS_TO_BATTLE.removeAll(teamsWaitingLoserSeriesEnd);
             startGames();
             TEAMS_TO_BATTLE.addAll(teamsWaitingLoserSeriesEnd);
-            losersTeamById.remove(0);
             startLoserSeries();
         }
     }
-
 
     private void clearInfoTeams() {
         TEAMS_TO_BATTLE.forEach(it -> {
@@ -164,7 +160,6 @@ public class ChampionshipEvent implements Runnable {
             it.setTeamState(WAITING_FIGHT);
         });
     }
-
 
     private ChampionshipTeam[] sortTeams(ChampionshipState state) {
         ChampionshipTeam team;
@@ -306,12 +301,6 @@ public class ChampionshipEvent implements Runnable {
         return mTeamsRegistered.stream().map(ChampionshipTeam::getLeader).collect(Collectors.toList());
     }
 
-    //Run after championship event finishes
-    public void clearChampionshipTeams() {
-        truncateTable();
-        mTeamsRegistered = null;
-    }
-
     private void giveItemsAndSendMessage(PcInventory inv, int[] itemId) {
         SystemMessage systemMessage;
         L2PcInstance player = inv.getOwner();
@@ -335,7 +324,6 @@ public class ChampionshipEvent implements Runnable {
             }
         }
     }
-
 
     public static class LAZY_HOLDER {
 
@@ -375,10 +363,6 @@ public class ChampionshipEvent implements Runnable {
         }
     }
 
-    public static void main(String[] args) {
-        new Thread(ChampionshipEvent.LAZY_HOLDER.getInstance()).start();
-    }
-
     public ChampionshipState getChampionshipState() {
         return STATE;
     }
@@ -388,17 +372,4 @@ public class ChampionshipEvent implements Runnable {
         return TEAMS_TO_BATTLE;
     }
 
-    private void mockTeams() {
-        ChampionshipTeam team1 = new ChampionshipTeam(1, new ArrayList<>(), "Team 1");
-        ChampionshipTeam team2 = new ChampionshipTeam(2, new ArrayList<>(), "Team 2");
-        ChampionshipTeam team3 = new ChampionshipTeam(3, new ArrayList<>(), "Team 3");
-        ChampionshipTeam team4 = new ChampionshipTeam(4, new ArrayList<>(), "Team 4");
-        ChampionshipTeam team5 = new ChampionshipTeam(5, new ArrayList<>(), "Team 5");
-
-        TEAMS_TO_BATTLE.add(team1);
-        TEAMS_TO_BATTLE.add(team2);
-        TEAMS_TO_BATTLE.add(team3);
-        TEAMS_TO_BATTLE.add(team4);
-        TEAMS_TO_BATTLE.add(team5);
-    }
 }
