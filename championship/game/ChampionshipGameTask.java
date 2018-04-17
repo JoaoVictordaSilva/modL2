@@ -8,7 +8,6 @@ import com.it.br.gameserver.model.entity.event.championship.model.ChampionshipTe
 import com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants;
 import com.it.br.gameserver.model.entity.event.championship.util.Util;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;

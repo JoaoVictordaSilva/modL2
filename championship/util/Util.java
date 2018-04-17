@@ -88,7 +88,7 @@ public class Util {
             if (it.isInDuel())
                 it.setDuelState(Duel.DUELSTATE_INTERRUPTED);
 
-            if(it.getPvpFlag() > 0)
+            if (it.getPvpFlag() > 0)
                 it.setPvpFlag(0);
 
             if (it.getKarma() > 0)
@@ -114,4 +114,16 @@ public class Util {
 
         return true;
     }
+
+    public static void announce(long time) {
+        time = time / 1000;
+        if (time >= 3600) {
+            System.out.println("Championship Event: " + (time / 60 / 60) + " hour(s) until event start!");
+        } else if (time >= 60) {
+            System.out.println("Championship Event: " + (time / 60) + " minute(s) until event start!");
+        } else {
+            System.out.println("Championship Event: " + time + " second(s) until event start!");
+        }
+    }
+
 }

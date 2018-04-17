@@ -37,7 +37,7 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
                     activeChar.sendMessage(INSERT_VALID_TEAM_NAME);
                     return false;
                 }
-                if(teamName.length() > 16){
+                if (teamName.length() > 16) {
                     activeChar.sendMessage(TEAM_NAME_TOO_LONG);
                     return false;
                 }
@@ -62,25 +62,23 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
     }
 
     private String showTeamsRegisteredWithPagination(int page) {
+
         double totalPages = (double) ChampionshipRepository.countTeam() / (double) 20;
+
         if (totalPages % 1 != 0)
             totalPages = (int) totalPages + 1;
-        StringBuilder replyMSG = new StringBuilder("<html><body>");
-        replyMSG.append("<center><font color=\"LEVEL\">Championship Event</font></center><br>");
-        replyMSG.append("<center>Teams registered until now</center><br>");
-        replyMSG.append("<center><table width=150>");
-        ChampionshipRepository.getTeamsWithPagination(page * 20).forEach(it -> {
-            replyMSG.append("<tr><td>")
-                    .append(it.getLeaderTeam()).append("</td>")
-                    .append("<td>").append(it.getTeamName()).append("</td></tr>");
-            replyMSG.append("<tr></tr>");
 
-        });
-        replyMSG.append("</table></center>");
+        StringBuilder replyMSG = new StringBuilder("<html><body>")
+                .append("<center><font color=\"LEVEL\">Championship Event</font></center><br>")
+                .append("<center>Teams registered until now</center><br><center><table width=150>");
 
-        replyMSG.append("<center><table width=100>");
+        ChampionshipRepository.getTeamsWithPagination(page * 20)
+                .forEach(it -> replyMSG.append("<tr><td>")
+                        .append(it.getLeaderTeam()).append("</td>")
+                        .append("<td>").append(it.getTeamName()).append("</td></tr>")
+                        .append("<tr></tr>"));
 
-        replyMSG.append("<tr>");
+        replyMSG.append("</table></center><center><table width=100><tr>");
 
         for (int i = 0; i < totalPages && totalPages < 9; i++) {
             replyMSG.append("<td width=10>");
@@ -88,12 +86,12 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
             if (i == page)
                 replyMSG.append(i + 1);
             else
-                replyMSG.append("<a action=\"bypass -h championship_page").append(i).append("\">").append(i + 1).append("</a>");
-            replyMSG.append("</td>");
+                replyMSG.append("<a action=\"bypass -h championship_page").append(i).append("\">").append(i + 1).append("</a>")
+                        .append("</td>");
         }
 
-        replyMSG.append("</tr>");
-        replyMSG.append("</table></center>");
+        replyMSG.append("</tr></table></center>");
+
         return replyMSG.toString();
     }
 

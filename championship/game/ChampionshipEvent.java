@@ -17,9 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.it.br.gameserver.model.entity.event.championship.game.repository.ChampionshipRepository.truncateTable;
 import static com.it.br.gameserver.model.entity.event.championship.model.ChampionshipTeam.TeamState.*;
-import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.*;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.THERE_ARE_NOT_REGISTERED_TEAM;
 
 public class ChampionshipEvent implements Runnable {
 
@@ -43,6 +43,7 @@ public class ChampionshipEvent implements Runnable {
     }
 
     public void start() {
+        LOGGER.info("Starting engine([ChampionshipEvent])");
         ChampionshipEventSchedule.LAZY_HOLDER.schedule();
     }
 
