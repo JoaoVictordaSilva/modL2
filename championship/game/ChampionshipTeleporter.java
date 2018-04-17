@@ -9,27 +9,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.*;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TEN_SECONDS;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.YOU_WILL_BE_TELEPORTED;
 
 public class ChampionshipTeleporter {
 
     private static ChampionshipTeleporter INSTANCE;
-    private ChampionshipTeam mTeamA, mTeamB;
     private Map<L2PcInstance, Integer[]> mPlayerLocationMap = new HashMap<>();
 
     private ChampionshipTeleporter() {
     }
 
-    public void init(ChampionshipTeam teamA, ChampionshipTeam teamB) {
-        this.mTeamA = teamA;
-        this.mTeamB = teamB;
-        oldLocationPlayer(mTeamA.getPlayersList());
-        oldLocationPlayer(mTeamB.getPlayersList());
+    public void init(List<L2PcInstance> players) {
+        oldLocationPlayer(players);
     }
 
-    public void teleportTeams(int[] location) {
-        sendMessageAndTeleport(mTeamA.getPlayersList(), location, 900);
-        sendMessageAndTeleport(mTeamB.getPlayersList(), location, -900);
+    public void teleportTeams(ChampionshipTeam teamA, ChampionshipTeam teamB, int[] location) {
+        sendMessageAndTeleport(teamA.getPlayersList(), location, 900);
+        sendMessageAndTeleport(teamB.getPlayersList(), location, -900);
         Util.sleepThread(TEN_SECONDS);
     }
 
@@ -37,20 +34,25 @@ public class ChampionshipTeleporter {
         players.forEach(player -> mPlayerLocationMap.put(player, new Integer[]{player.getX(), player.getY(), player.getZ()}));
     }
 
-    public void teleportPlayerToLastPosition() {
-        mPlayerLocationMap.keySet().forEach(player -> {
-            player.sendMessage(YOU_WILL_BE_TELEPORTED);
-            player.teleToLocation(new Location(mPlayerLocationMap.get(player)), true);
+    public void teleportPlayerToLastPosition(List<L2PcInstance> players) {
+        teleportPlayers(players);
+    }
+
+    private void teleportPlayers(List<L2PcInstance> players) {
+        players.stream().filter(mPlayerLocationMap::containsKey).forEach(it -> {
+            mPlayerLocationMap.get(it);
+            it.sendMessage(YOU_WILL_BE_TELEPORTED);
+            it.teleToLocation(new Location(mPlayerLocationMap.get(it)), true);
+            clearPlayerLocationMap(it);
         });
-        clearPlayerLocationMap();
     }
 
     public Map<L2PcInstance, Integer[]> getPlayerLocationMap() {
         return mPlayerLocationMap;
     }
 
-    private void clearPlayerLocationMap() {
-        mPlayerLocationMap.clear();
+    private void clearPlayerLocationMap(L2PcInstance obj) {
+        mPlayerLocationMap.remove(obj);
     }
 
     private void sendMessageAndTeleport(List<L2PcInstance> players, int[] location, int xLocation) {

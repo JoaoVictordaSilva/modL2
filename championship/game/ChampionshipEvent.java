@@ -40,6 +40,9 @@ public class ChampionshipEvent implements Runnable {
     private List<Integer> losersTeamById;
 
     private ChampionshipEvent() {
+    }
+
+    public void start() {
         ChampionshipEventSchedule.LAZY_HOLDER.schedule();
     }
 
@@ -251,7 +254,7 @@ public class ChampionshipEvent implements Runnable {
         if (championshipTeam == null || championshipTeam.getLeader() == null)
             return;
 
-        if (!isLeaderPartyAndNotInCommandChannel(championshipTeam.getLeader())) {
+        if (!Util.isLeaderPartyAndNotInCommandChannel(championshipTeam.getLeader())) {
             return;
         }
 
@@ -262,24 +265,6 @@ public class ChampionshipEvent implements Runnable {
     private void insertTeams() {
         mTeamsRegistered.forEach(this::addTeam);
         mAuxList = new ArrayList<>(TEAMS_TO_BATTLE);
-    }
-
-    private boolean isLeaderPartyAndNotInCommandChannel(L2PcInstance player) {
-        if (!player.isInParty()) {
-            player.sendMessage(NEED_PARTY_AND_BE_LEADER_PARTY_TO_PARTICIPATE);
-            return false;
-        }
-        if (!player.getParty().getPartyMembers().get(0).equals(player)) {
-            player.sendMessage(NEED_BE_LEADER_PARTY);
-            return false;
-        }
-
-        if (player.getParty().isInCommandChannel()) {
-            player.sendMessage(CANT_BE_IN_COMMAND_CHANNEL);
-            return false;
-        }
-
-        return true;
     }
 
     private boolean checkTeamsRegistered() {
@@ -335,7 +320,7 @@ public class ChampionshipEvent implements Runnable {
 
     }
 
-    private boolean hasTeamsRegistered() {
+    public boolean hasTeamsRegistered() {
         if (mTeamsRegistered.size() == 0) {
             LOGGER.info(THERE_ARE_NOT_REGISTERED_TEAM);
             Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_REGISTERED_TEAM);
@@ -371,5 +356,6 @@ public class ChampionshipEvent implements Runnable {
     public List<ChampionshipTeam> getTeamsToBattle() {
         return TEAMS_TO_BATTLE;
     }
+
 
 }

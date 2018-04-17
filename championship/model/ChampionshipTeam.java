@@ -134,4 +134,10 @@ public class ChampionshipTeam {
         totalBattles++;
     }
 
+    public void setTitlesByTeamName() {
+        playersList.forEach(it -> {
+            it.setTitle(teamName);
+        });
+    }
+
 }

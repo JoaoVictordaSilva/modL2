@@ -7,6 +7,7 @@ import com.it.br.gameserver.model.entity.event.championship.model.ChampionshipGa
 import com.it.br.gameserver.model.entity.event.championship.model.ChampionshipTeam;
 import com.it.br.gameserver.model.entity.event.championship.model.GameStatus;
 import com.it.br.gameserver.model.entity.event.championship.model.ModelTableView;
+import com.it.br.gameserver.model.entity.event.championship.util.Util;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class ChampionshipRepository {
                     "GROUP BY id_team HAVING MAXIMO_DERROTA_1 = 1";
 
     private static final String FIND_TEAM_NAME = "SELECT name FROM team WHERE name = ?";
-    private static final String SELECT_TEAM_TABLE_VIEW_PAGINATION = "SELECT c.char_name, t.team_name FROM team t JOIN characters c ON t.id_team_leader = c.obj_Id LIMIT ?,10";
+    private static final String SELECT_TEAM_TABLE_VIEW_PAGINATION = "SELECT c.char_name, t.team_name FROM team t JOIN characters c ON t.id_team_leader = c.obj_Id LIMIT ?,20";
     private static final String COUNT_TEAM = "SELECT COUNT(*) FROM team";
     private static final String SELECT_FROM_CHAMPION = "SELECT t.id_team, t.id_team_leader, t.team_name FROM champion c JOIN team t ON c.id_team = t.id_team";
     private static final String INSERT_INTO_GAME_VERSUS = "INSERT INTO game_versus(id_game_one, id_game_two) VALUES(?,?)";
@@ -287,7 +288,9 @@ public class ChampionshipRepository {
     public static int countTeam() {
         PreparedStatement preparedStatement = preparedStatement(COUNT_TEAM);
         try {
-            return preparedStatement.executeQuery().getInt(1);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
         } catch (SQLException e) {
             LOGGER.warning("Error at count teams");
             e.printStackTrace();
@@ -362,6 +365,7 @@ public class ChampionshipRepository {
         }
     }
 
+    //TODO check before add into registered teams
     public static List<ChampionshipTeam> getTeamsRegistered() {
         PreparedStatement statement = preparedStatement(SELECT_TEAM);
         List<ChampionshipTeam> teamsRegistered = new ArrayList<>();
@@ -371,7 +375,9 @@ public class ChampionshipRepository {
                 int teamId = resultSet.getInt(FIELD_NAME_TEAM[0]);
                 L2PcInstance leaderPlayer = L2World.getInstance().getPlayer(resultSet.getInt(FIELD_NAME_TEAM[1]));
                 String teamName = resultSet.getString(FIELD_NAME_TEAM[2]);
-                teamsRegistered.add(new ChampionshipTeam(teamId, leaderPlayer.getParty().getPartyMembers(), teamName));
+
+                if (Util.isLeaderPartyAndNotInCommandChannel(leaderPlayer))
+                    teamsRegistered.add(new ChampionshipTeam(teamId, leaderPlayer.getParty().getPartyMembers(), teamName));
             }
 
         } catch (SQLException e) {

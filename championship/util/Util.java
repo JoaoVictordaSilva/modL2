@@ -12,7 +12,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TEAM_DEFEATED_ENEMY;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.*;
 
 public class Util {
 
@@ -95,5 +95,23 @@ public class Util {
                 it.setKarma(0);
 
         });
+    }
+
+    public static boolean isLeaderPartyAndNotInCommandChannel(L2PcInstance player) {
+        if (!player.isInParty()) {
+            player.sendMessage(NEED_PARTY_AND_BE_LEADER_PARTY_TO_PARTICIPATE);
+            return false;
+        }
+        if (!player.getParty().getPartyMembers().get(0).equals(player)) {
+            player.sendMessage(NEED_BE_LEADER_PARTY);
+            return false;
+        }
+
+        if (player.getParty().isInCommandChannel()) {
+            player.sendMessage(CANT_BE_IN_COMMAND_CHANNEL);
+            return false;
+        }
+
+        return true;
     }
 }

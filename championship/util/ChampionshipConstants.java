@@ -16,10 +16,12 @@ public class ChampionshipConstants {
     public static final String YOU_WILL_BE_TELEPORTED = "You will be teleported in few seconds!";
     public static final String TEAM_NAME_ALREADY_REGISTERED = "Team name already registered, choose other!";
     public static final String DB_CONNECTION_ERROR = "Connection with database is wrong.";
-    public static final String THERE_ARE_NOT_REGISTERED_TEAM = "Canceling the event. There are no registered teams";
+    public static final String THERE_ARE_NOT_REGISTERED_TEAM = "Canceling the event. There are not registered teams";
     public static final String THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM = "Canceling the event. There aren't enough registered  teams, minimum participants are 4 teams";
-    public static final String THAT_THE_BEST_WIN = "Good Luck! That the best win";
+    public static final String THAT_THE_BEST_WIN = "Good Luck! That the best win!";
     static final String TEAM_DEFEATED_ENEMY = "%s defeated %s";
+    public static final String INSERT_VALID_TEAM_NAME = "Insert a valid team name!";
+    public static final String TEAM_NAME_TOO_LONG = "The team name is too long, the maximum of characters is 16!";
     private static final String TIME_ZONE_ID = "America/Sao_Paulo";
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone(TIME_ZONE_ID);
     public static final int PER_SECOND = 1000;
@@ -36,6 +38,7 @@ public class ChampionshipConstants {
     public static final int PER_HOUR = 3600000;
     public static final int PER_HALF_HOUR = PER_HOUR / 2;
     public static final int PER_TEN_MINUTE = PER_HALF_HOUR / 3;
+    public static final int PER_TWENTY_MINUTE = PER_TEN_MINUTE * 2;
     public static final int PER_FIVE_MINUTE = PER_TEN_MINUTE / 2;
     public static final int PER_MINUTE = PER_FIVE_MINUTE / 5;
 }

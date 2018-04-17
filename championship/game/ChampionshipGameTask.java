@@ -36,14 +36,16 @@ public class ChampionshipGameTask implements Runnable {
         int totalOldTotalPvpKillTeamA = mTeamA.getTotalPvpKills();
         int totalOldTotalPvpKillTeamB = mTeamB.getTotalPvpKills();
 
-        ChampionshipTeleporter teleporter = ChampionshipTeleporter.LAZY_HOLDER.getInstance();
-        teleporter.init(mTeamA, mTeamB);
-
         Timestamp timestamp = new Timestamp(Calendar.getInstance(TIME_ZONE).getTimeInMillis());
+
+        setTitleByTeamName(mTeamA, mTeamB);
 
         List<L2PcInstance> playersToBattle = new ArrayList<>();
         playersToBattle.addAll(mTeamA.getPlayersList());
         playersToBattle.addAll(mTeamB.getPlayersList());
+
+        ChampionshipTeleporter teleporter = ChampionshipTeleporter.LAZY_HOLDER.getInstance();
+        teleporter.init(playersToBattle);
 
         Util.setEffectsToParticipate(playersToBattle, true, true);
 
@@ -52,7 +54,7 @@ public class ChampionshipGameTask implements Runnable {
 
                 STADIUM.setStadiaBusy();
 
-                teleporter.teleportTeams(STADIUM.getCoordinates());
+                teleporter.teleportTeams(mTeamA, mTeamB, STADIUM.getCoordinates());
 
                 Util.sendMessageToBattleBegin(playersToBattle);
 
@@ -66,7 +68,7 @@ public class ChampionshipGameTask implements Runnable {
                 ChampionshipRepository.insertChampionshipGame(mTeamA, mTeamB, totalKillsInEventTeamA, totalDeathsInEventTeamA, timestamp);
 
                 Util.setEffectsToParticipate(playersToBattle, false, false);
-                teleporter.teleportPlayerToLastPosition();
+                teleporter.teleportPlayerToLastPosition(playersToBattle);
                 STADIUM.setStadiaFree();
                 mEvent.setTeamState(WAITING_FIGHT, mTeamA, mTeamB);
                 break;
@@ -78,10 +80,10 @@ public class ChampionshipGameTask implements Runnable {
             } else {
                 mEvent.getTeamsToBattle().remove(mTeamB);
             }
+        } else {
+            mTeamA.increaseBattleToTeam(mTeamB);
+            mEvent.setFinishedFightByTotalBattles(mTeamA, mTeamB);
         }
-
-        mTeamA.increaseBattleToTeam(mTeamB);
-        mEvent.setFinishedFightByTotalBattles(mTeamA, mTeamB);
 
         synchronized (this) {
             notify();
@@ -116,4 +118,9 @@ public class ChampionshipGameTask implements Runnable {
                     new OlympiadStadia(-114413, -213241, -3331)
             };
 
+    private void setTitleByTeamName(ChampionshipTeam... teams) {
+        for (ChampionshipTeam team : teams) {
+            team.setTitlesByTeamName();
+        }
+    }
 }

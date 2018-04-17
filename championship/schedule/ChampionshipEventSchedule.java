@@ -28,9 +28,7 @@ public class ChampionshipEventSchedule implements Runnable {
         Calendar calendar = Calendar.getInstance(TIME_ZONE);
         long delay;
 
-        if ((Calendar.FRIDAY == calendar.get(Calendar.DAY_OF_WEEK) &&
-                calendar.get(Calendar.HOUR_OF_DAY) > 22 && calendar.get(Calendar.HOUR_OF_DAY) < 24)
-                || (DAY_OF_WEEK == calendar.get(Calendar.DAY_OF_WEEK))) {
+        if (DAY_OF_WEEK == calendar.get(Calendar.DAY_OF_WEEK)) {
 
             calendar.set(Calendar.DAY_OF_WEEK, DAY_OF_WEEK);
             calendar.set(Calendar.HOUR_OF_DAY, HOUR_OF_DAY);
@@ -44,8 +42,8 @@ public class ChampionshipEventSchedule implements Runnable {
                 delay = PER_HOUR;
             } else if (initialDelay(calendar) > PER_HALF_HOUR) {
                 delay = PER_HALF_HOUR;
-            } else if (initialDelay(calendar) > PER_TEN_MINUTE) {
-                delay = PER_TEN_MINUTE;
+            } else if (initialDelay(calendar) > PER_TWENTY_MINUTE) {
+                delay = PER_TWENTY_MINUTE;
             } else if (initialDelay(calendar) > PER_FIVE_MINUTE) {
                 delay = PER_FIVE_MINUTE;
             } else if (initialDelay(calendar) > PER_MINUTE) {
@@ -67,7 +65,6 @@ public class ChampionshipEventSchedule implements Runnable {
                 delay = initialDelay(calendar);
             }
         } else {
-
             calendar.add(Calendar.HOUR, 1);
             calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
@@ -88,7 +85,7 @@ public class ChampionshipEventSchedule implements Runnable {
     private long delay() {
         Calendar calendar = Calendar.getInstance(TIME_ZONE);
         calendar.add(Calendar.HOUR, 1);
-        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.MINUTE, MINUTE);
         calendar.set(Calendar.SECOND, 0);
         return initialDelay(calendar);
     }
@@ -105,24 +102,24 @@ public class ChampionshipEventSchedule implements Runnable {
     private static void announce(long time) {
         time = time / 1000;
         if (time >= 3600) {
-            System.out.println("Championship Event: " + (time / 60 / 60) + " hour(s) until event start!");
+            Announcements.getInstance().gameAnnounceToAll("Championship Event: " + (time / 60 / 60) + " hour(s) until event start!");
         } else if (time >= 60) {
-            System.out.println("Championship Event: " + (time / 60) + " minute(s) until event start!");
+            Announcements.getInstance().gameAnnounceToAll("Championship Event: " + (time / 60) + " minute(s) until event start!");
         } else {
-            System.out.println("Championship Event: " + time + " second(s) until event start!");
+            Announcements.getInstance().gameAnnounceToAll("Championship Event: " + time + " second(s) until event start!");
         }
     }
 
     public static void main(String[] args) {
         Calendar instance = Calendar.getInstance(TIME_ZONE);
-        instance.set(Calendar.HOUR_OF_DAY, 16);
+        instance.set(Calendar.HOUR_OF_DAY, 22);
         instance.set(Calendar.MINUTE, mockMinute);
         instance.set(Calendar.SECOND, 0);
         scheduler.schedule(new Teste(), initialDelay(instance), TimeUnit.MILLISECONDS);
     }
 
-    static final int mockMinute = 13;
-    static final int mockPosMinute = mockMinute + 10;
+    static final int mockMinute = 17;
+    static final int mockPosMinute = mockMinute;
 
     static class Teste implements Runnable {
 
@@ -134,7 +131,7 @@ public class ChampionshipEventSchedule implements Runnable {
 
             if (Calendar.FRIDAY == calendar.get(Calendar.DAY_OF_WEEK)) {
 
-                calendar.set(Calendar.HOUR_OF_DAY, 16);
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
                 calendar.set(Calendar.MINUTE, mockPosMinute);
                 calendar.set(Calendar.SECOND, SECOND);
 
@@ -145,8 +142,8 @@ public class ChampionshipEventSchedule implements Runnable {
                     delay = PER_HOUR;
                 } else if (initialDelay(calendar) > PER_HALF_HOUR) {
                     delay = PER_HALF_HOUR;
-                } else if (initialDelay(calendar) > PER_TEN_MINUTE) {
-                    delay = PER_TEN_MINUTE;
+                } else if (initialDelay(calendar) > PER_TWENTY_MINUTE) {
+                    delay = PER_TWENTY_MINUTE;
                 } else if (initialDelay(calendar) > PER_FIVE_MINUTE) {
                     delay = PER_FIVE_MINUTE;
                 } else if (initialDelay(calendar) > PER_MINUTE) {
