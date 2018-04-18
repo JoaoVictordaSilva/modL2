@@ -39,12 +39,18 @@ public class ChampionshipTeleporter {
     }
 
     private void teleportPlayers(List<L2PcInstance> players) {
-        players.stream().filter(mPlayerLocationMap::containsKey).forEach(it -> {
-            mPlayerLocationMap.get(it);
+        players.forEach(it -> {
             it.sendMessage(YOU_WILL_BE_TELEPORTED);
             it.teleToLocation(new Location(mPlayerLocationMap.get(it)), true);
             clearPlayerLocationMap(it);
         });
+    }
+
+    public void teleportPlayerToLastPosition(L2PcInstance player) {
+        if (mPlayerLocationMap.get(player) != null) {
+            player.teleToLocation(new Location(mPlayerLocationMap.get(player)), true);
+            clearPlayerLocationMap(player);
+        }
     }
 
     public Map<L2PcInstance, Integer[]> getPlayerLocationMap() {

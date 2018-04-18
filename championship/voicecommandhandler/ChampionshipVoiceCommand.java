@@ -7,19 +7,14 @@ import com.it.br.gameserver.model.entity.event.championship.game.repository.Cham
 import com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants;
 import com.it.br.gameserver.network.serverpackets.NpcHtmlMessage;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.Calendar;
 
-import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.INSERT_VALID_TEAM_NAME;
-import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TEAM_NAME_TOO_LONG;
-import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TIME_ZONE;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.*;
 
 public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
 
-    private static final String[] COMMAND_LIST = {"championship_register", "championship_page", "championship_confirm", "unregister", "info"};
+    private static final String[] COMMAND_LIST = {"championship_register", "championship_page", "championship_confirm",
+            "championship_champion", "unregister", "info"};
     private static ChampionshipVoiceCommand INSTANCE;
 
     @Override
@@ -43,7 +38,6 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
                     activeChar.sendMessage(TEAM_NAME_TOO_LONG);
                     return false;
                 }
-
                 championshipEvent.setHtml(showConfirmTeamName(teamName));
                 activeChar.sendPacket(championshipEvent);
             }
@@ -57,6 +51,8 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
                 page = "0";
             championshipEvent.setHtml(showTeamsRegisteredWithPagination(Integer.parseInt(page)));
             activeChar.sendPacket(championshipEvent);
+        } else if (command.startsWith("championship_champion")) {
+            showChampionPage();
         }
         return true;
     }
@@ -68,7 +64,7 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
 
     private String showTeamsRegisteredWithPagination(int page) {
 
-        double totalPages = (double) ChampionshipRepository.countTeam() / (double) 20;
+        double totalPages = (double) ChampionshipRepository.countTeam() / 20;
 
         if (totalPages % 1 != 0)
             totalPages = (int) totalPages + 1;
@@ -77,9 +73,14 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
                 .append("<center><font color=\"LEVEL\">Championship Event</font></center><br>")
                 .append("<center>Teams registered until now</center><br><center><table width=150>");
 
+        replyMSG.append("<tr><td>")
+                .append("Team Leader Name</td>")
+                .append("<td>Team Name</td></tr>")
+                .append("<tr></tr>");
+
         ChampionshipRepository.getTeamsWithPagination(page * 20)
                 .forEach(it -> replyMSG.append("<tr><td>")
-                        .append(it.getLeaderTeam()).append("</td>")
+                        .append(it.getTeamLeaderName()).append("</td>")
                         .append("<td>").append(it.getTeamName()).append("</td></tr>")
                         .append("<tr></tr>"));
 
@@ -103,7 +104,27 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
     private String showConfirmTeamName(String teamName) {
         return "<html><body>Are you sure you want to register with this team name: " + teamName + " " +
                 "<button value=\"Confirm\" action=\"bypass -h championship_confirm" + teamName + "\" width=55 height=15\n" +
-                "                    back=\"sek.cbui94\" fore=\"sek.cbui92\"></body></html>";
+                "back=\"sek.cbui94\" fore=\"sek.cbui92\"></body></html>";
+    }
+
+    private void showChampionPage() {
+        StringBuilder replyMSG = new StringBuilder("<html><body>")
+                .append("<center><font color=\"LEVEL\">Championship Event</font></center><br>")
+                .append("<center>Teams registered until now</center><br><center><table width=150>")
+                .append("<tr><td>")
+                .append("Leader Name</td>")
+                .append("<td>Team Name</td>")
+                .append("<td>Date of Victory</td></tr>")
+                .append("<tr></tr>");
+
+        ChampionshipRepository.getChampionsTableView()
+                .forEach(it -> replyMSG.append("<tr><td>")
+                        .append(it.getTeamLeaderName()).append("</td>")
+                        .append("<td>").append(it.getTeamName()).append("</td>")
+                        .append("<td>").append(it.getBattleDate()).append("</td></tr>")
+                        .append("<tr></tr>"));
+
+        replyMSG.append("</table></center><center><table width=100><tr>");
     }
 
     private String getHtmForce() {
@@ -112,6 +133,7 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
 
     public static class LAZY_HOLDER {
         public static ChampionshipVoiceCommand getInstance() {
+
             if (INSTANCE == null)
                 INSTANCE = new ChampionshipVoiceCommand();
 

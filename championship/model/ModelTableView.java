@@ -1,26 +1,32 @@
 package com.it.br.gameserver.model.entity.event.championship.model;
 
+import java.util.Date;
+
 public class ModelTableView {
 
-    private String leaderTeam;
+    private String teamLeaderName;
 
     private String teamName;
 
-    public ModelTableView(){
+    private Date battleDate;
 
-    }
-
-    public ModelTableView(String leaderTeam, String teamName) {
-        this.leaderTeam = leaderTeam;
+    public ModelTableView(String teamLeaderName, String teamName) {
+        this.teamLeaderName = teamLeaderName;
         this.teamName = teamName;
     }
 
-    public String getLeaderTeam() {
-        return leaderTeam;
+    public ModelTableView(String teamLeaderName, String teamName, Date battleDate) {
+        this.teamLeaderName = teamLeaderName;
+        this.teamName = teamName;
+        this.battleDate = battleDate;
     }
 
-    public void setLeaderTeam(String leaderTeam) {
-        this.leaderTeam = leaderTeam;
+    public String getTeamLeaderName() {
+        return teamLeaderName;
+    }
+
+    public void setTeamLeaderName(String teamLeaderName) {
+        this.teamLeaderName = teamLeaderName;
     }
 
     public String getTeamName() {
@@ -29,5 +35,13 @@ public class ModelTableView {
 
     public void setTeamName(String teamName) {
         this.teamName = teamName;
+    }
+
+    public Date getBattleDate() {
+        return battleDate;
+    }
+
+    public void setBattleDate(Date battleDate) {
+        this.battleDate = battleDate;
     }
 }

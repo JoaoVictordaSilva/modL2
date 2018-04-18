@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS team(
   id_team INTEGER AUTO_INCREMENT,
   id_team_leader INTEGER,
   team_name VARCHAR(50),
+  active BIT DEFAULT FALSE,
   CONSTRAINT pk_id_team PRIMARY KEY(id_team)
 );
 
@@ -22,6 +23,13 @@ CREATE TABLE IF NOT EXISTS champion(
   id_team INTEGER,
   CONSTRAINT pk_id_champion PRIMARY KEY(id_champion),
   CONSTRAINT fk_id_team FOREIGN KEY(id_team) REFERENCES team(id_team)
+);
+
+CREATE TABLE IF NOT EXISTS championship(
+id_championship INTEGER AUTO_INCREMENT,
+id_champion NOT NULL,
+CONSTRAINT pk_id_championship PRIMARY KEY(id_championship),
+CONSTRAINT fk_id_champion FOREIGN KEY(id_champion) REFERENCES champion(id_champion)
 );
 
 CREATE TABLE game_versus(

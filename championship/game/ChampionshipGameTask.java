@@ -93,7 +93,6 @@ public class ChampionshipGameTask implements Runnable {
 
     }
 
-
     private static final OlympiadStadia[] STADIUMS =
             {
                     new OlympiadStadia(-20814, -21189, -3030),

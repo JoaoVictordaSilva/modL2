@@ -19,10 +19,11 @@ import static com.it.br.gameserver.model.entity.event.championship.util.Champion
 
 public class ChampionshipRepository {
 
-    public static final String SELECT_TEAM = "SELECT * FROM team";
-    private static final String SELECT_TEAM_WHERE_ID_TEAM_LEADER = "SELECT * FROM team where id_team_leader = ?";
-    private static final String INSERT_INTO_TEAM = "INSERT INTO team(id_team_leader, team_name) VALUES(?,?)";
+    public static final String SELECT_TEAM = "SELECT * FROM team WHERE active = TRUE";
+    private static final String SELECT_TEAM_WHERE_ID_TEAM_LEADER = "SELECT * FROM team WHERE id_team_leader = ? AND active = TRUE";
+    private static final String INSERT_INTO_TEAM = "INSERT INTO team(id_team_leader, team_name, active) VALUES(?,?,?)";
     private static final String DELETE_FROM_TEAM_WHERE_ID_TEAM_LEADER = "DELETE FROM team WHERE id_team_leader = ?";
+    private static final String UPDATE_FROM_TEAM_WHERE_ID_TEAM_LEADER = "UPDATE team SET active = FALSE WHERE id_team_leader = ?";
     private static final String INSERT_INTO_GAME = "INSERT INTO game (kill_, status_game, death, resurrection, id_team) VALUES(?,?,?,?,?)";
 
     public static final String[] FIELD_NAME_TEAM = {"id_team", "id_team_leader", "team_name"};
@@ -37,14 +38,20 @@ public class ChampionshipRepository {
                     "WHERE status_game = 2  GROUP BY id_team ) AS MAX_LOSE)  AS MAXIMO_DERROTA_1 FROM game  WHERE status_game = 2 " +
                     "GROUP BY id_team HAVING MAXIMO_DERROTA_1 = 1";
 
-    private static final String FIND_TEAM_NAME = "SELECT name FROM team WHERE name = ?";
+    private static final String FIND_TEAM_NAME = "SELECT name FROM team WHERE name = ? AND active = TRUE";
     private static final String SELECT_TEAM_TABLE_VIEW_PAGINATION = "SELECT c.char_name, t.team_name FROM team t JOIN characters c ON t.id_team_leader = c.obj_Id LIMIT ?,20";
     private static final String COUNT_TEAM = "SELECT COUNT(*) FROM team";
     private static final String SELECT_FROM_CHAMPION = "SELECT t.id_team, t.id_team_leader, t.team_name FROM champion c JOIN team t ON c.id_team = t.id_team";
+    public static final String SELECT_CHAMPION_TABLE_VIEW = "SELECT ch.char_name, t.team_name, DATE_FORMAT(victory_date,'%M/%d/%Y' %H:%i) " +
+                                                                "FROM champion c " +
+                                                                "JOIN team t " +
+                                                                "ON c.id_team = t.id_team" +
+                                                                "JOIN characters ch " +
+                                                                "ON ch.obj_Id = t.id_team_leader";
     private static final String INSERT_INTO_GAME_VERSUS = "INSERT INTO game_versus(id_game_one, id_game_two) VALUES(?,?)";
     private static final String INSERT_INTO_HISTORY = "INSERT INTO history(id_game_versus, battle_time ) VALUES(?,?)";
     private static final String LAST_INSERT_ID = "SELECT LAST_INSERT_ID()";
-    private static final String INSERT_INTO_CHAMPION = "INSERT INTO champion(victory_date, id_team) VALUES(?,?)";
+    private static final String INSERT_INTO_CHAMPION = "INSERT INTO champion(id_team, victory_date) VALUES(?,?)";
 
     private static final Logger LOGGER = Logger.getLogger(ChampionshipRepository.class.getName());
 
@@ -126,7 +133,7 @@ public class ChampionshipRepository {
         ChampionshipGame game = new ChampionshipGame();
         game.setKill(totalKillsInEventTeamA);
         game.setDeath(totalDeathsInEventTeamA);
-        game.setResurrection(0);
+        game.setResurrection(teamA.getTotalResurrectionAccepted());
         game.setTeamId(teamA.getId());
 
         if (teamA.isAllDead())
@@ -139,7 +146,7 @@ public class ChampionshipRepository {
         game.setKill(totalDeathsInEventTeamA);
         game.setDeath(totalKillsInEventTeamA);
         game.setGameStatus(game.getGameStatus().getStatusCode() == 1 ? GameStatus.LOSE : GameStatus.WIN);
-        game.setResurrection(0);
+        game.setResurrection(teamB.getTotalResurrectionAccepted());
         game.setTeamId(teamB.getId());
 
         int idGameTwo = insertIntoChampionshipGameAndReturnLastInsertId(game);
@@ -205,6 +212,7 @@ public class ChampionshipRepository {
         try {
             statement.setInt(1, player.getObjectId());
             statement.setString(2, teamName);
+            statement.setBoolean(3, true);
             statement.execute();
             player.sendMessage(REGISTERED);
         } catch (SQLException e) {
@@ -317,7 +325,7 @@ public class ChampionshipRepository {
                 championshipTeams.add(new ChampionshipTeam(teamId, leaderPlayer.getParty().getPartyMembers(), teamName));
             }
         } catch (SQLException e) {
-            LOGGER.warning("Error at insert get champions");
+            LOGGER.warning("Error get champions");
             e.printStackTrace();
         } finally {
             try {
@@ -328,6 +336,33 @@ public class ChampionshipRepository {
         }
 
         return championshipTeams;
+    }
+
+    public static List<ModelTableView> getChampionsTableView() {
+        PreparedStatement statement = preparedStatement(SELECT_CHAMPION_TABLE_VIEW);
+        List<ModelTableView> modelTableViews = new ArrayList<>();
+        try {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+
+                String charName = resultSet.getString(1);
+                String teamName = resultSet.getString(2);
+                Timestamp battleTime = resultSet.getTimestamp(3);
+
+                modelTableViews.add(new ModelTableView(charName, teamName, battleTime));
+            }
+        } catch (SQLException e) {
+            LOGGER.warning("Error get champions to table view");
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.getConnection().close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return modelTableViews;
     }
 
     private static void insertIntoGameVersusAndAuditHistory(int idGameOne, int idGameTwo, Timestamp timestamp) {
@@ -365,7 +400,6 @@ public class ChampionshipRepository {
         }
     }
 
-    //TODO check before add into registered teams
     public static List<ChampionshipTeam> getTeamsRegistered() {
         PreparedStatement statement = preparedStatement(SELECT_TEAM);
         List<ChampionshipTeam> teamsRegistered = new ArrayList<>();
@@ -398,7 +432,7 @@ public class ChampionshipRepository {
 
         try {
             statement.setInt(1, idChampionshipTeam);
-            statement.setDate(2, new Date(Calendar.getInstance(TIME_ZONE).getTimeInMillis()));
+            statement.setTimestamp(2, new Timestamp(Calendar.getInstance(TIME_ZONE).getTimeInMillis()));
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();

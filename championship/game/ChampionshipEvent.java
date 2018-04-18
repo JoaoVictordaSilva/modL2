@@ -31,13 +31,13 @@ public class ChampionshipEvent implements Runnable {
     private static ChampionshipEvent INSTANCE;
     private static List<ChampionshipTeam> TEAMS_TO_BATTLE = Collections.synchronizedList(new ArrayList<>());
     private static ChampionshipState STATE;
-    private static List<int[]> REWARDS_ITEM_ID = new ArrayList<>(Arrays.asList(new int[]{57, 1000000}));
+    private static List<Integer[]> REWARDS_ITEM_ID = new ArrayList<>(Arrays.<Integer[]>asList(new Integer[]{57, 1000000}));
+    private static EventState EVENT_STATE = EventState.INACTIVE;
 
-    private EventState mEventState = EventState.INACTIVE;
     private Random mRandom = new Random();
     private List<ChampionshipTeam> mTeamsRegistered;
     private List<ChampionshipTeam> mAuxList;
-    private List<Integer> losersTeamById;
+    private List<Integer> mLosersTeamById;
 
     private ChampionshipEvent() {
     }
@@ -74,11 +74,8 @@ public class ChampionshipEvent implements Runnable {
 
     private void rewardTeam(ChampionshipTeam team) {
         team.getPlayersList().forEach(it -> {
-
             PcInventory inv = it.getInventory();
-
             REWARDS_ITEM_ID.forEach(itemId -> giveItemsAndSendMessage(inv, itemId));
-
         });
 
     }
@@ -97,7 +94,6 @@ public class ChampionshipEvent implements Runnable {
             waitWhenOnlyOneWaitingOrAllFighting(thread);
             ChampionshipTeam[] championshipTeams = sortTeams(STATE);
             thread = getTeamsSortedAndStartGameTask(championshipTeams, thread);
-
         }
     }
 
@@ -133,20 +129,19 @@ public class ChampionshipEvent implements Runnable {
         }
     }
 
-
     private void startLoserSeries() {
         STATE = ChampionshipState.LOSER_SERIES;
         clearInfoTeams();
-        losersTeamById = ChampionshipRepository.getLosersTeamById();
-        if (losersTeamById != null && losersTeamById.size() == 1) {
+        mLosersTeamById = ChampionshipRepository.getLosersTeamById();
+        if (mLosersTeamById != null && mLosersTeamById.size() == 1) {
             LOGGER.info("******Initializing FINAL PHASE******");
-            TEAMS_TO_BATTLE.removeIf(it -> it.getId() == losersTeamById.get(0));
+            TEAMS_TO_BATTLE.removeIf(it -> it.getId() == mLosersTeamById.get(0));
             STATE = ChampionshipState.FINAL_PHASE;
             startFinalPhase();
         } else {
             LOGGER.info("******Initializing LOSER SERIES******");
             List<ChampionshipTeam> teamsWaitingLoserSeriesEnd = TEAMS_TO_BATTLE.stream().map(it -> {
-                if (losersTeamById.stream().noneMatch(id -> it.getId() == id))
+                if (mLosersTeamById.stream().noneMatch(id -> it.getId() == id))
                     return it;
                 return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
@@ -287,7 +282,7 @@ public class ChampionshipEvent implements Runnable {
         return mTeamsRegistered.stream().map(ChampionshipTeam::getLeader).collect(Collectors.toList());
     }
 
-    private void giveItemsAndSendMessage(PcInventory inv, int[] itemId) {
+    private void giveItemsAndSendMessage(PcInventory inv, Integer[] itemId) {
         SystemMessage systemMessage;
         L2PcInstance player = inv.getOwner();
         if (ItemTable.getInstance().createDummyItem(itemId[0]).isStackable()) {
@@ -311,17 +306,7 @@ public class ChampionshipEvent implements Runnable {
         }
     }
 
-    public static class LAZY_HOLDER {
-
-        public static ChampionshipEvent getInstance() {
-            if (INSTANCE == null)
-                INSTANCE = new ChampionshipEvent();
-            return INSTANCE;
-        }
-
-    }
-
-    public boolean hasTeamsRegistered() {
+    private boolean hasTeamsRegistered() {
         if (mTeamsRegistered.size() == 0) {
             LOGGER.info(THERE_ARE_NOT_REGISTERED_TEAM);
             Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_REGISTERED_TEAM);
@@ -329,18 +314,18 @@ public class ChampionshipEvent implements Runnable {
         }
         if (mTeamsRegistered.size() < 3) {
             LOGGER.info(THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM);
-            Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_REGISTERED_TEAM);
+            Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM);
             return false;
         }
         return true;
     }
 
     public EventState getState() {
-        return mEventState;
+        return EVENT_STATE;
     }
 
     public void setState(EventState state) {
-        this.mEventState = state;
+        EVENT_STATE = state;
     }
 
     public void setTeamState(ChampionshipTeam.TeamState teamState, ChampionshipTeam... teams) {
@@ -358,5 +343,26 @@ public class ChampionshipEvent implements Runnable {
         return TEAMS_TO_BATTLE;
     }
 
+    public static void onLogout(L2PcInstance player) {
+        if (EVENT_STATE.equals(EventState.STARTED))
+            TEAMS_TO_BATTLE.stream()
+                    .map(ChampionshipTeam::getPlayersList)
+                    .filter(it -> (it.contains(player)))
+                    .findFirst()
+                    .ifPresent(it -> {
+                        it.remove(player);
+                        ChampionshipTeleporter.LAZY_HOLDER.getInstance().teleportPlayerToLastPosition(player);
+                    });
 
+    }
+
+    public static class LAZY_HOLDER {
+
+        public static ChampionshipEvent getInstance() {
+            if (INSTANCE == null)
+                INSTANCE = new ChampionshipEvent();
+            return INSTANCE;
+        }
+
+    }
 }
