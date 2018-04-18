@@ -2,6 +2,7 @@ package com.it.br.gameserver.model.entity.event.championship.model;
 
 import com.it.br.gameserver.model.actor.instance.L2PcInstance;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,9 +136,16 @@ public class ChampionshipTeam {
     }
 
     public void setTitlesByTeamName() {
-        playersList.forEach(it -> {
-            it.setTitle(teamName);
-        });
+        playersList.forEach(it -> it.setTitle(teamName));
     }
+
+    public int getTotalResurrectionAccepted(){
+        return playersList.stream().mapToInt(L2PcInstance::getResurrectionAccepted).sum();
+    }
+
+    public void clearResurrectionAccepted(){
+        playersList.forEach(L2PcInstance::clearResurrectionAccepted);
+    }
+
 
 }
