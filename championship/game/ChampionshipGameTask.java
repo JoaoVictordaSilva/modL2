@@ -84,6 +84,8 @@ public class ChampionshipGameTask implements Runnable {
             mEvent.setFinishedFightByTotalBattles(mTeamA, mTeamB);
         }
 
+        clearResurrectionAccepted();
+
         synchronized (this) {
             notify();
         }
@@ -121,5 +123,10 @@ public class ChampionshipGameTask implements Runnable {
         for (ChampionshipTeam team : teams) {
             team.setTitlesByTeamName();
         }
+    }
+
+    private void clearResurrectionAccepted(){
+        mTeamA.clearResurrectionAccepted();
+        mTeamB.clearResurrectionAccepted();
     }
 }
