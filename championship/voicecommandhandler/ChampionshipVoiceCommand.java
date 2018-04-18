@@ -19,7 +19,7 @@ import static com.it.br.gameserver.model.entity.event.championship.util.Champion
 
 public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
 
-    private static final String[] COMMAND_LIST = {"championship_register", "championship_page", "unregister", "info"};
+    private static final String[] COMMAND_LIST = {"championship_register", "championship_page", "championship_confirm", "unregister", "info"};
     private static ChampionshipVoiceCommand INSTANCE;
 
     @Override
@@ -28,6 +28,8 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
         if (command.equalsIgnoreCase("info")) {
             championshipEvent.setHtml(getHtmForce());
             activeChar.sendPacket(championshipEvent);
+        } else if (command.startsWith("unregister")) {
+            ChampionshipRepository.unregister(activeChar);
         } else if (command.startsWith("championship_register")) {
             if (ChampionshipConstants.DAY_OF_WEEK == Calendar.getInstance(TIME_ZONE).get(Calendar.DAY_OF_WEEK)) {
                 activeChar.sendMessage(ChampionshipConstants.NOT_ALLOWED_REGISTER_IN_DAY_OF_EVENT);
@@ -41,11 +43,14 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
                     activeChar.sendMessage(TEAM_NAME_TOO_LONG);
                     return false;
                 }
-                ChampionshipRepository.register(activeChar, teamName);
+
+                championshipEvent.setHtml(showConfirmTeamName(teamName));
+                activeChar.sendPacket(championshipEvent);
             }
 
-        } else if (command.startsWith("unregister")) {
-            ChampionshipRepository.unregister(activeChar);
+        } else if (command.startsWith("championship_confirm")) {
+            String teamName = command.substring(21);
+            ChampionshipRepository.register(activeChar, teamName);
         } else if (command.startsWith("championship_page")) {
             String page = command.length() > 17 ? command.substring(17) : "";
             if (page.equals(""))
@@ -93,6 +98,12 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
         replyMSG.append("</tr></table></center>");
 
         return replyMSG.toString();
+    }
+
+    private String showConfirmTeamName(String teamName) {
+        return "<html><body>Are you sure you want to register with this team name: " + teamName + " " +
+                "<button value=\"Confirm\" action=\"bypass -h championship_confirm" + teamName + "\" width=55 height=15\n" +
+                "                    back=\"sek.cbui94\" fore=\"sek.cbui92\"></body></html>";
     }
 
     private String getHtmForce() {
