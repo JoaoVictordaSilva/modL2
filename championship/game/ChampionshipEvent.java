@@ -306,17 +306,17 @@ public class ChampionshipEvent implements Runnable {
         }
     }
 
-    private boolean hasTeamsRegistered() {
-        if (mTeamsRegistered.size() == 0) {
-            LOGGER.info(THERE_ARE_NOT_REGISTERED_TEAM);
-            Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_REGISTERED_TEAM);
-            return false;
-        }
-        if (mTeamsRegistered.size() < 3) {
-            LOGGER.info(THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM);
-            Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM);
-            return false;
-        }
+    public boolean hasTeamsRegistered() {
+//        if (mTeamsRegistered != null && mTeamsRegistered.size() == 0) {
+//            LOGGER.info(THERE_ARE_NOT_REGISTERED_TEAM);
+//            Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_REGISTERED_TEAM);
+//            return false;
+//        }
+//        if (mTeamsRegistered.size() < 3) {
+//            LOGGER.info(THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM);
+//            Announcements.getInstance().gameAnnounceToAll(THERE_ARE_NOT_ENOUGH_REGISTERED_TEAM);
+//            return false;
+//        }
         return true;
     }
 

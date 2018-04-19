@@ -51,6 +51,9 @@ public class ChampionshipRepository {
     private static final String INSERT_INTO_GAME_VERSUS = "INSERT INTO game_versus(id_game_one, id_game_two) VALUES(?,?)";
     private static final String INSERT_INTO_HISTORY = "INSERT INTO history(id_game_versus, battle_time ) VALUES(?,?)";
     private static final String LAST_INSERT_ID = "SELECT LAST_INSERT_ID()";
+    public static final String SELECT_MAX_GAME = "SELECT MAX(id_game) FROM game";
+    public static final String SELECT_MAX_GAME_VERSUS = "SELECT MAX(id_game_versus) FROM game_versus";
+
     private static final String INSERT_INTO_CHAMPION = "INSERT INTO champion(id_team, victory_date) VALUES(?,?)";
 
     private static final Logger LOGGER = Logger.getLogger(ChampionshipRepository.class.getName());
@@ -90,7 +93,7 @@ public class ChampionshipRepository {
             statement.setInt(4, game.getResurrection());
             statement.setInt(5, game.getTeamId());
             statement.execute();
-            ResultSet resultSet = statement.executeQuery(LAST_INSERT_ID);
+            ResultSet resultSet = statement.executeQuery(SELECT_MAX_GAME);
             resultSet.next();
             return resultSet.getInt(1);
         } catch (SQLException e) {
@@ -371,7 +374,7 @@ public class ChampionshipRepository {
             statement.setInt(1, idGameOne);
             statement.setInt(2, idGameTwo);
             statement.execute();
-            ResultSet resultSet = statement.executeQuery(LAST_INSERT_ID);
+            ResultSet resultSet = statement.executeQuery(SELECT_MAX_GAME_VERSUS);
             resultSet.next();
             int idGameVersus = resultSet.getInt(1);
             statement.close();

@@ -43,6 +43,8 @@ public class ChampionshipTeleporter {
             it.sendMessage(YOU_WILL_BE_TELEPORTED);
             it.teleToLocation(new Location(mPlayerLocationMap.get(it)), true);
             clearPlayerLocationMap(it);
+            if(it.isDead())
+                it.doRevive();
         });
     }
 

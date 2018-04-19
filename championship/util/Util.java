@@ -5,7 +5,6 @@ import com.it.br.gameserver.model.actor.instance.L2PcInstance;
 import com.it.br.gameserver.model.entity.Duel;
 import com.it.br.gameserver.model.entity.event.championship.model.ChampionshipTeam;
 import com.it.br.gameserver.network.serverpackets.ExShowScreenMessage;
-import com.it.br.gameserver.network.serverpackets.StopMove;
 
 import java.util.List;
 import java.util.Timer;
@@ -27,8 +26,8 @@ public class Util {
                         player.sendPacket(
                                 new ExShowScreenMessage("The battle will start in " + timeToBattle.get() + " seconds", 1000, 2, true)));
                 timeToBattle.getAndDecrement();
-                if (timeToBattle.get() == 0) {
-                    setEffectsToParticipate(playersToBattle, false);
+                if (timeToBattle.get() <= 0) {
+                    setEffectsToParticipate(playersToBattle);
                     timer.cancel();
                 }
             }
@@ -64,15 +63,14 @@ public class Util {
         }
     }
 
-    private static void setEffectsToParticipate(List<L2PcInstance> players, boolean paralyzed) {
-        setEffectsToParticipate(players, paralyzed, true);
+    private static void setEffectsToParticipate(List<L2PcInstance> players) {
+        setEffectsToParticipate(players, true, true);
     }
 
-    public static void setEffectsToParticipate(List<L2PcInstance> players, boolean paralyzed, boolean isFightingInChampionship) {
+    public static void setEffectsToParticipate(List<L2PcInstance> players, boolean canAttack, boolean isFightingInChampionship) {
         players.forEach(it -> {
             it.setFightingInChampionship(isFightingInChampionship);
-            it.sendPacket(new StopMove(it));
-            it.setIsParalyzed(paralyzed);
+            it.setCanAttack(canAttack);
             it.setCurrentCp(it.getMaxCp());
             it.setCurrentHpMp(it.getMaxHp(), it.getMaxMp());
 

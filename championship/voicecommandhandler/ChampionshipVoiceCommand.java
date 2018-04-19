@@ -43,7 +43,7 @@ public class ChampionshipVoiceCommand implements IVoicedCommandHandler {
             }
 
         } else if (command.startsWith("championship_confirm")) {
-            String teamName = command.substring(21);
+            String teamName = command.substring(20);
             ChampionshipRepository.register(activeChar, teamName);
         } else if (command.startsWith("championship_page")) {
             String page = command.length() > 17 ? command.substring(17) : "";

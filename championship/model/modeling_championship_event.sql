@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS game(
   death INTEGER,
   resurrection INTEGER,
   id_team INTEGER,
-  CONSTRAINT PK_ID_GAME PRIMARY KEY(id_game),
-  CONSTRAINT FK_ID_TEAM FOREIGN KEY(id_team) REFERENCES team(id_team)
+  CONSTRAINT pk_id_game PRIMARY KEY(id_game),
+  CONSTRAINT fk_game_id_team FOREIGN KEY(id_team) REFERENCES team(id_team)
 );
 
 CREATE TABLE IF NOT EXISTS champion(
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS champion(
   victory_date DATETIME NOT NULL,
   id_team INTEGER,
   CONSTRAINT pk_id_champion PRIMARY KEY(id_champion),
-  CONSTRAINT fk_id_team FOREIGN KEY(id_team) REFERENCES team(id_team)
+  CONSTRAINT fk_champion_id_team FOREIGN KEY(id_team) REFERENCES team(id_team)
 );
 
 CREATE TABLE IF NOT EXISTS championship(

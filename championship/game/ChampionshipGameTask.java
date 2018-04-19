@@ -14,6 +14,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import static com.it.br.gameserver.model.entity.event.championship.model.ChampionshipTeam.TeamState.WAITING_FIGHT;
+import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TEN_SECONDS;
 import static com.it.br.gameserver.model.entity.event.championship.util.ChampionshipConstants.TIME_ZONE;
 
 
@@ -46,7 +47,7 @@ public class ChampionshipGameTask implements Runnable {
         ChampionshipTeleporter teleporter = ChampionshipTeleporter.LAZY_HOLDER.getInstance();
         teleporter.init(playersToBattle);
 
-        Util.setEffectsToParticipate(playersToBattle, true, true);
+        Util.setEffectsToParticipate(playersToBattle, false, true);
 
         for (OlympiadStadia STADIUM : STADIUMS) {
             if (STADIUM.isFreeToUse()) {
@@ -85,6 +86,8 @@ public class ChampionshipGameTask implements Runnable {
         }
 
         clearResurrectionAccepted();
+
+        Util.sleepThread(TEN_SECONDS);
 
         synchronized (this) {
             notify();
