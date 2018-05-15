@@ -56,6 +56,7 @@ id_item INTEGER NOT NULL,
 quantity INTEGER NOT NULL,
 id_player INTEGER NOT NULL,
 id_team INTEGER NOT NULL,
+active BIT DEFAULT FALSE,
 CONSTRAINT pk_id_lottery PRIMARY KEY(id),
 CONSTRAINT fk_lottery_bid_id_item FOREIGN KEY(id_item) REFERENCES etcitem(item_id)--TODO verify the references on that table
 CONSTRAINT fk_lottery_bid_id_player FOREIGN KEY(id_player) REFERENCES characters(obj_Id)--TODO verify the references on that table
