@@ -46,13 +46,35 @@ id_history INTEGER AUTO_INCREMENT,
 id_game_versus INTEGER NOT NULL,
 battle_time DATETIME NOT NULL,
 CONSTRAINT pk_id_history PRIMARY KEY(id_history),
-CONSTRAINT fk_id_game_versus FOREIGN KEY(id_game_versus)
+CONSTRAINT fk_id_game_versus FOREIGN KEY(id_game_versus) REFERENCES game_versus(id_game_versus)
 );
 
-CREATE UNIQUE INDEX ix_id_team_leader ON team(id_team_leader);
-CREATE UNIQUE INDEX ix_id_game_versus ON game_versus(id_game_versus);
-CREATE UNIQUE INDEX ix_id_history ON history(id_history);
-CREATE UNIQUE INDEX ix_id_game ON game(id_team)
+--Lottery
+CREATE TABLE IF NOT EXISTS lottery_bid(
+id INTEGER AUTO_INCREMENT,
+id_item INTEGER NOT NULL,
+quantity INTEGER NOT NULL,
+id_player INTEGER NOT NULL,
+id_team INTEGER NOT NULL,
+CONSTRAINT pk_id_lottery PRIMARY KEY(id),
+CONSTRAINT fk_lottery_bid_id_item FOREIGN KEY(id_item) REFERENCES etcitem(item_id)--TODO verify the references on that table
+CONSTRAINT fk_lottery_bid_id_player FOREIGN KEY(id_player) REFERENCES characters(obj_Id)--TODO verify the references on that table
+);
+
+CREATE TABLE IF NOT EXISTS lottery_bid_history(
+id INTEGER AUTO_INCREMENT,
+id_lottery_bid INTEGER NOT NULL,
+time_bid DATETIME,
+CONSTRAINT pk_id_lottery_bid_history PRIMARY KEY(id),
+CONSTRAINT fk_lottery_bid_history_id_lottery_bid FOREIGN KEY(id_lottery_bid) REFERENCES lottery_bid(id)
+);
+
+CREATE TABLE IF NOT EXISTS lottery_winner(
+id INTEGER AUTO_INCREMENT
+id_lottery_bid INTEGER NOT NULL,
+CONSTRAINT pk_id_lottery_winner PRIMARY KEY(id),
+CONSTRAINT fk_lottery_winner_id_lottery_bid FOREIGN KEY(id_lottery_bid) REFERENCES lottery_bid(id)
+);
 
 
 
